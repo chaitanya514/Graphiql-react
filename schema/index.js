@@ -1,26 +1,63 @@
 const graphql = require('graphql')
 const _ = require('lodash')
-const { GraphQLObjectType, GraphQLString, GraphQLSchema } = graphql
+const { GraphQLObjectType, GraphQLString, GraphQLSchema, GraphQLID } = graphql
 
 const books = [
     {
         name: 'The Book',
         genre: 'Comedy',
-        id: '1'
+        id: '1',
+        authorid:'1'
     },
     {
         name: 'The Legend',
         genre: 'knowledge',
-        id: '2'
+        id: '2',
+        authorid:'2'
     }
 ]
 
+const authors = [
+    {
+        name: 'cp',
+        age: '25',
+        id: '1'
+       
+    },
+    {
+        name: 'GP',
+        age: '26',
+        id: '2'
+        
+    }
+]
+
+
+
 const BookType = new GraphQLObjectType({
-    name: "Block",
+    name: "Book",
     fields: () => ({
-        id: { type: GraphQLString },
+        id: { type: GraphQLID },
         name: { type: GraphQLString },
-        genre: { type: GraphQLString }
+        genre: { type: GraphQLString },
+        author:{
+            type:AuthorType,
+            resolve(parent, args) {
+                return _.find(authors,{id:parent.authorid})
+                //code to get Data from mongodb
+            }     
+
+
+        }
+    })
+})
+
+const AuthorType = new GraphQLObjectType({
+    name: "Author",
+    fields: () => ({
+        id: { type: GraphQLID },
+        name: { type: GraphQLString },
+        age: { type: graphql.GraphQLInt }
     })
 })
 
@@ -29,18 +66,26 @@ const RootQuery = new GraphQLObjectType({
     fields: {
         book: {
             type: BookType,
-            args: { id: { type: GraphQLString } },
+            args: { id: { type: GraphQLID } },
             resolve(parent, args) {
                 return _.find(books,{id:args.id})
                 //code to get Data from mongodb
+            }     
+        },
+        author: {
+            type: AuthorType,
+            args: { id: { type: GraphQLID} },
+            resolve(parent, args) {
+                return _.find(authors,{id:args.id})
+                //code to get Data from mongodb
             }
+           
         }
+        
+        
+
     }
 })
-
-
-
-
 module.exports = new GraphQLSchema({
     query: RootQuery
 })
